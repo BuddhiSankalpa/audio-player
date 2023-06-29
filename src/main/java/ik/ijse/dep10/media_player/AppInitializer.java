@@ -76,6 +76,8 @@ public class AppInitializer extends Application {
         lblSongName.setTextFill(Color.DARKBLUE);
         lblSongName.setBackground(Background.fill(Color.LIGHTSKYBLUE));
 
+
+        //txtSongName.setMaxWidth(300);
         lblSongName.setAlignment(Pos.CENTER);
         HBox.setHgrow(lblTitle, Priority.ALWAYS);
         //txtSongName.setPadding(new Insets(0,100,0,100));
@@ -88,31 +90,136 @@ public class AppInitializer extends Application {
         Image icnMute = new Image(this.getClass().getResource("/image/mute.png").toString());
         Image icnMusic = new Image(this.getClass().getResource("/image/music.png").toString());
 
+        btnOpen.setOnAction(event -> {
+            FileChooser fileChooser = new FileChooser();
+
+            fileChooser.setTitle("Open an audio file");
+            File audioFile = fileChooser.showOpenDialog(null);
+
+            if (audioFile != null){
+                Media media = new Media(audioFile.toURI().toString());
+                lblSongName.setText(audioFile.toURI().toString());
+                mediaPlayer = new MediaPlayer(media);
+
+            }else{
+                mediaPlayer = null;
+            }
+        });
 
         imgPlay.setImage(icnPlay);
         imgPlay.setFitWidth(50);
         imgPlay.setFitHeight(50);
-
+        imgPlay.setCursor(Cursor.HAND);
+        imgPlay.setOnMouseEntered(event -> imgPlay.setOpacity(1));
+        imgPlay.setOnMouseExited(event -> imgPlay.setOpacity(0.8));
+        imgPlay.setOnMousePressed(event -> imgPlay.setEffect(new InnerShadow(10, Color.BLACK)));
+        imgPlay.setOnMouseReleased(event -> {
+            imgPlay.setEffect(null);
+            if (mediaPlayer != null) {
+                imgCenter.setImage(icnPause);
+                imgCenter.setFitWidth(300);
+                imgCenter.setFitHeight(300);
+                mediaPlayer.play();
+            }
+        });
 
         imgPause.setImage(icnPause);
         imgPause.setFitWidth(50);
         imgPause.setFitHeight(50);
-
+        imgPause.setCursor(Cursor.HAND);
+        imgPause.setOnMouseEntered((event -> imgPause.setOpacity(1)));
+        imgPause.setOnMouseExited(event -> imgPause.setOpacity(0.8));
+        imgPause.setOnMousePressed(event -> imgPause.setEffect(new InnerShadow(10, Color.BLACK)));
+        imgPause.setOnMouseReleased(event -> {
+            imgPause.setEffect(null);
+            if (mediaPlayer != null) {
+                imgCenter.setImage(icnPlay);
+                imgCenter.setFitHeight(300);
+                imgCenter.setFitWidth(300);
+                mediaPlayer.pause();
+            }
+        });
 
         imgStop.setImage(icnStop);
         imgStop.setFitWidth(50);
         imgStop.setFitHeight(50);
-
+        imgStop.setCursor(Cursor.HAND);
+        imgStop.setOnMouseEntered(event -> imgStop.setOpacity(1));
+        imgStop.setOnMouseExited(event -> imgStop.setOpacity(0.8));
+        imgStop.setOnMousePressed(event -> imgStop.setEffect(new InnerShadow(10, Color.BLACK)));
+        imgStop.setOnMouseReleased(event -> {
+            imgStop.setEffect(null);
+            if (mediaPlayer != null) {
+                imgCenter.setImage(icnMusic);
+                imgCenter.setFitHeight(300);
+                imgCenter.setFitWidth(300);
+                mediaPlayer.stop();
+            }
+        });
 
         imgRepeat.setImage(icnRepeat);
         imgRepeat.setFitWidth(50);
         imgRepeat.setFitHeight(50);
-
+        imgRepeat.setCursor(Cursor.HAND);
+        imgRepeat.setOnMouseEntered(event -> imgRepeat.setOpacity(1));
+        imgRepeat.setOnMouseExited(event -> imgRepeat.setOpacity(0.8));
+        imgRepeat.setOnMousePressed(event -> imgRepeat.setEffect(new InnerShadow(10, Color.BLACK)));
+        imgRepeat.setOnMouseReleased(event -> imgRepeat.setEffect(null));
 
         imgVolume.setImage(icnSound);
         imgVolume.setFitWidth(50);
         imgVolume.setFitHeight(50);
+        imgVolume.setCursor(Cursor.HAND);
+        imgVolume.setOnMouseEntered(event -> imgVolume.setOpacity(1));
+        imgVolume.setOnMouseExited(event -> imgVolume.setOpacity(0.8));
+        imgVolume.setOnMousePressed(event -> imgVolume.setEffect(new InnerShadow(10, Color.BLACK)));
+        imgVolume.setOnMouseReleased(event -> {
+            imgVolume.setEffect(null);
 
+
+            if (volume){
+                imgVolume.setImage(icnSound);
+                imgCenter.setImage(icnMusic);
+                volume = false;
+                if (mediaPlayer != null) {
+                    if (mute) {
+                        mediaPlayer.setMute(true);
+                    }else {
+                        mediaPlayer.setVolume(t2);
+                        lblVol.setText(Integer.toString((int) (t2*100))+"%");
+                        sliderVolume.setValue(t2);
+                    }
+                }
+
+            }else  {
+                imgVolume.setImage(icnMute);
+                imgCenter.setImage(icnMute);
+                sliderVolume.setValue(0);
+                volume = true;
+            }
+        });
+        sliderVolume.setMaxWidth(150);
+        sliderVolume.setOnMouseEntered(event -> sliderVolume.setOpacity(1));
+        sliderVolume.setOnMouseExited(event -> sliderVolume.setOpacity(0.8));
+        sliderVolume.setOnMousePressed(event -> sliderVolume.setEffect(new InnerShadow(6,Color.DARKBLUE)));
+        sliderVolume.setMin(0);
+        sliderVolume.setMax(1);
+        sliderVolume.valueProperty().addListener((observableValue, number, t1) -> {
+            t2 = (double)number;
+            int percentage = (int)(sliderVolume.getValue() * 100);
+            lblVol.setText(Integer.toString(percentage)+"%");
+            if (percentage == 0) {
+                imgVolume.setImage(icnMute);
+                imgCenter.setImage(icnMute);
+            }
+            if (percentage != 0) {
+                imgVolume.setImage(icnSound);
+                imgCenter.setImage(icnMusic);
+            }
+            if (mediaPlayer != null) {
+                mediaPlayer.setVolume((double) t1);
+            }
+        });
 
         imgCenter.setImage(icnMusic);
         imgCenter.setFitWidth(300);
@@ -136,12 +243,17 @@ public class AppInitializer extends Application {
         borderPane.setCenter(vBoxCenter);
         borderPane.setPadding(new Insets(10));
         borderPane.setBorder(Border.stroke(Color.LIGHTSKYBLUE));
+        //borderPane.setBackground(Background.fill(Color.LIGHTSKYBLUE));
 
         Scene scene = new Scene(borderPane);
         stage.setScene(scene);
         stage.setResizable(false);
         stage.setMinWidth(600);
         stage.setMinHeight(600);
+
+        KeyFrame key1 = new KeyFrame(Duration.millis(500),actionEvent -> {
+
+        });
 
     }
 }
